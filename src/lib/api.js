@@ -1,83 +1,108 @@
-// src/lib/api.js
-// This file is used to fetch product and category data from three different base URLs safely.
 
-const API_BASE_URLS = [
-  "https://openapi.programming-hero.com/api/bazardor",
-  "https://api.api-store.workers.dev/api/bazardor",
-  "https://api.abcz.workers.dev/api/bazardor",
-];
+const BASE_URL = "https://openapi.programming-hero.com/api/bazardor";
 
-async function fetchWithFallback(endpoint) {
-  for (const baseUrl of API_BASE_URLS) {
-    try {
-      const response = await fetch(`${baseUrl}${endpoint}`, {
-        next: { revalidate: 60 },
-      });
-      if (response.ok) {
-        const json = await response.json();
-
-        return json?.data || json?.products || json?.categories || json;
-      }
-    } catch (error) {
-      console.warn(`Failed to fetch from ${baseUrl}${endpoint}, trying next...`);
-    }
-  }
-  return null;
-}
-
-//Function to fetch all products (/products)
+// ১. সব পণ্য আনার ফাংশন
 export async function getAllProducts() {
-  const data = await fetchWithFallback("/products");
-  return Array.isArray(data) ? data : [];
-}
+  try {
+    const res = await fetch(`${BASE_URL}/products`);
+    const data = await res.json();
+    const rawList = data.data || data.products || data;
 
-//
-export async function getProductsByCategory(categorySlug) {
-  const data = await fetchWithFallback(`/products?category=${encodeURIComponent(categorySlug)}`);
-  if (Array.isArray(data) && data.length > 0) return data;
-
-
-  const allProducts = await getAllProducts();
-  return allProducts.filter(
-    (item) =>
-      item.category === categorySlug ||
-      item.categorySlug === categorySlug ||
-      item.category_slug === categorySlug
-  );
-}
-
-//Function to fetch details of a single product (/products/1 or /products/[slug])
-export async function getSingleProduct(slugOrId) {
-  const data = await fetchWithFallback(`/products/${encodeURIComponent(slugOrId)}`);
-  if (data && !Array.isArray(data) && (data.id || data.name || data.title)) {
-    return data;
+    return Array.isArray(rawList)
+      ? rawList.map((item) => ({
+        ...item,
+        // API-এর সঠিক ফিল্ড ম্যাপিং
+        name: item.nameBn || item.name || "পণ্য",
+        price: item.today || item.price || 0,
+        unit: item.unit === "kg" ? "প্রতি কেজি" : item.unit === "litre" ? "প্রতি লিটার" : `প্রতি ${item.unit || "কেজি"}`,
+        emoji: item.image || item.emoji || "🛒",
+        change: item.change?.pct || 0,
+        changeDir: item.change?.dir || "flat",
+      }))
+      : [];
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
   }
+}
+
+// ২. ক্যাটাগরি অনুযায়ী পণ্য ফিল্টার
+export async function getProductsByCategory(categorySlug) {
+  try {
+    const res = await fetch(`${BASE_URL}/products?category=${categorySlug}`);
+    const data = await res.json();
+    const rawList = data.data || data.products || data;
+
+    return Array.isArray(rawList)
+      ? rawList.map((item) => ({
+        ...item,
+        name: item.nameBn || item.name || "পণ্য",
+        price: item.today || item.price || 0,
+        unit: item.unit === "kg" ? "প্রতি কেজি" : item.unit === "litre" ? "প্রতি লিটার" : `প্রতি ${item.unit || "কেজি"}`,
+        emoji: item.image || item.emoji || "🛒",
+        change: item.change?.pct || 0,
+        changeDir: item.change?.dir || "flat",
+      }))
+      : [];
+  } catch (error) {
+    console.error("Error fetching products by category:", error);
+    return [];
+  }
+}
 
 
-  const allProducts = await getAllProducts();
-  return (
-    allProducts.find(
+export async function getSingleProduct(slugOrId) {
+  try {
+
+    const allProducts = await getAllProducts();
+    const found = allProducts.find(
       (item) =>
         String(item.id) === String(slugOrId) ||
-        item.slug === slugOrId ||
-        item.name === decodeURIComponent(slugOrId)
-    ) || null
-  );
+        String(item.slug) === String(slugOrId) ||
+        String(item.nameBn) === decodeURIComponent(slugOrId)
+    );
+
+    if (found) return found;
+
+
+    const res = await fetch(`${BASE_URL}/products/${slugOrId}`);
+    const data = await res.json();
+    const item = data.data || data.product || data;
+    if (!item) return null;
+
+    return {
+      ...item,
+      name: item.nameBn || item.name || "পণ্য",
+      price: item.today || item.price || 0,
+      unit: item.unit === "kg" ? "প্রতি কেজি" : item.unit === "litre" ? "প্রতি লিটার" : `প্রতি ${item.unit || "কেজি"}`,
+      emoji: item.image || item.emoji || "🛒",
+      change: item.change?.pct || 0,
+      changeDir: item.change?.dir || "flat",
+      categoryName: item.categoryNameBn || item.category || "নিত্যপণ্য",
+    };
+  } catch (error) {
+    console.error("Error fetching single product:", error);
+    return null;
+  }
 }
 
-//Function to retrieve all categories (/categories)
-export async function getAllCategories() {
-  const data = await fetchWithFallback("/categories");
-  if (Array.isArray(data) && data.length > 0) return data;
 
-  return [
-    { id: 1, name: "চাল", slug: "chal", icon: "🍚" },
-    { id: 2, name: "ডাল", slug: "dal", icon: "🫘" },
-    { id: 3, name: "তেল", slug: "tel", icon: "🫙" },
-    { id: 4, name: "সবজি", slug: "sobji", icon: "🥔" },
-    { id: 5, name: "মাছ", slug: "mach", icon: "🐟" },
-    { id: 6, name: "মাংস", slug: "mangsho", icon: "🍗" },
-    { id: 7, name: "ডিম-দুধ", slug: "dim-dudh", icon: "🥚" },
-    { id: 8, name: "মসলা", slug: "mosla", icon: "🌶️" },
-  ];
+export async function getAllCategories() {
+  try {
+    const res = await fetch(`${BASE_URL}/categories`);
+    const data = await res.json();
+    const rawList = data.data || data.categories || data;
+
+    return Array.isArray(rawList)
+      ? rawList.map((cat) => ({
+        ...cat,
+        name: cat.nameBn || cat.name || "ক্যাটাগরি",
+        slug: cat.slug || cat.id,
+        icon: cat.icon || "📦",
+      }))
+      : [];
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
 }
