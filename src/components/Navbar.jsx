@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 "use client";
 
 import { useState } from "react";
@@ -27,7 +28,6 @@ export default function Navbar({ categories = [] }) {
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
       <div className="mx-auto max-w-6xl px-4">
-        {/* প্রথম সারি: লোগো + বাংলা তারিখ এবং ডান পাশে Auth বাটন / ইউজার মেনু */}
         <div className="flex items-center justify-between py-3">
           <Link href="/" className="flex flex-col">
             <span className="flex items-center gap-2 text-xl sm:text-2xl font-extrabold text-emerald-800">
@@ -35,7 +35,6 @@ export default function Navbar({ categories = [] }) {
             </span>
             <span className="text-xs text-gray-500 mt-0.5">{banglaDate}</span>
           </Link>
-
 
           <div className="relative">
             {isPending ? (
@@ -50,10 +49,9 @@ export default function Navbar({ categories = [] }) {
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-700 text-xs text-white">
                     {session.user.name?.charAt(0)?.toUpperCase() || "U"}
                   </span>
-                  <span className="max-w-30 truncate">{session.user.name}</span>
+                  <span className="max-w-[120px] truncate">{session.user.name}</span>
                   <ChevronDown className="h-4 w-4 text-gray-500" />
                 </button>
-
 
                 {menuOpen && (
                   <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-gray-200 bg-white p-3 shadow-lg z-50">
@@ -100,7 +98,6 @@ export default function Navbar({ categories = [] }) {
             )}
           </div>
         </div>
-
 
         <nav className="flex items-center gap-2 overflow-x-auto border-t border-gray-100 py-2.5 no-scrollbar">
           {categories.map((cat) => {

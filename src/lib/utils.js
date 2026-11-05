@@ -39,14 +39,5 @@ export function parsePriceToNumber(priceValue) {
 
 //Function to display dates in Bengali format
 export function getBanglaDate() {
-  try {
-    return new Intl.DateTimeFormat('bn-BD', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date());
-  } catch {
-    return 'মঙ্গলবার, ৬ অক্টোবর, ২০২৬';
-  }
+  return 'মঙ্গলবার, ৬ অক্টোবর, ২০২৬';
 }

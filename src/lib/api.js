@@ -1,17 +1,18 @@
+// src/lib/api.js
+export const dynamic = 'force-dynamic';
 
 const BASE_URL = "https://openapi.programming-hero.com/api/bazardor";
 
-// ১. সব পণ্য আনার ফাংশন
 export async function getAllProducts() {
   try {
-    const res = await fetch(`${BASE_URL}/products`);
+    const res = await fetch(`${BASE_URL}/products`, { cache: 'no-store' });
+    if (!res.ok) return [];
     const data = await res.json();
     const rawList = data.data || data.products || data;
 
     return Array.isArray(rawList)
       ? rawList.map((item) => ({
         ...item,
-        // API-এর সঠিক ফিল্ড ম্যাপিং
         name: item.nameBn || item.name || "পণ্য",
         price: item.today || item.price || 0,
         unit: item.unit === "kg" ? "প্রতি কেজি" : item.unit === "litre" ? "প্রতি লিটার" : `প্রতি ${item.unit || "কেজি"}`,
@@ -21,15 +22,14 @@ export async function getAllProducts() {
       }))
       : [];
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return [];
+    return []; // বিল্ডের সময় ক্র্যাশ এড়াতে খালি অ্যারে রিটার্ন করবে
   }
 }
 
-// ২. ক্যাটাগরি অনুযায়ী পণ্য ফিল্টার
 export async function getProductsByCategory(categorySlug) {
   try {
-    const res = await fetch(`${BASE_URL}/products?category=${categorySlug}`);
+    const res = await fetch(`${BASE_URL}/products?category=${categorySlug}`, { cache: 'no-store' });
+    if (!res.ok) return [];
     const data = await res.json();
     const rawList = data.data || data.products || data;
 
@@ -45,15 +45,12 @@ export async function getProductsByCategory(categorySlug) {
       }))
       : [];
   } catch (error) {
-    console.error("Error fetching products by category:", error);
     return [];
   }
 }
-
 
 export async function getSingleProduct(slugOrId) {
   try {
-
     const allProducts = await getAllProducts();
     const found = allProducts.find(
       (item) =>
@@ -64,8 +61,8 @@ export async function getSingleProduct(slugOrId) {
 
     if (found) return found;
 
-
-    const res = await fetch(`${BASE_URL}/products/${slugOrId}`);
+    const res = await fetch(`${BASE_URL}/products/${slugOrId}`, { cache: 'no-store' });
+    if (!res.ok) return null;
     const data = await res.json();
     const item = data.data || data.product || data;
     if (!item) return null;
@@ -81,15 +78,14 @@ export async function getSingleProduct(slugOrId) {
       categoryName: item.categoryNameBn || item.category || "নিত্যপণ্য",
     };
   } catch (error) {
-    console.error("Error fetching single product:", error);
     return null;
   }
 }
 
-
 export async function getAllCategories() {
   try {
-    const res = await fetch(`${BASE_URL}/categories`);
+    const res = await fetch(`${BASE_URL}/categories`, { cache: 'no-store' });
+    if (!res.ok) return [];
     const data = await res.json();
     const rawList = data.data || data.categories || data;
 
@@ -102,7 +98,6 @@ export async function getAllCategories() {
       }))
       : [];
   } catch (error) {
-    console.error("Error fetching categories:", error);
     return [];
   }
 }
