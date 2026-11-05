@@ -49,7 +49,7 @@ export default function Navbar({ categories = [] }) {
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-700 text-xs text-white">
                     {session.user.name?.charAt(0)?.toUpperCase() || "U"}
                   </span>
-                  <span className="max-w-[120px] truncate">{session.user.name}</span>
+                  <span className="max-w-30 truncate">{session.user.name}</span>
                   <ChevronDown className="h-4 w-4 text-gray-500" />
                 </button>
 
