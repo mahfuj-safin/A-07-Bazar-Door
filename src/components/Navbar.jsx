@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx
+
 "use client";
 
 import { useState } from "react";
@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { ChevronDown, User, LogOut } from "lucide-react";
 
 export default function Navbar({ categories = [] }) {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);

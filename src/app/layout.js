@@ -1,11 +1,11 @@
 // src/app/layout.js
 import "./globals.css";
+import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import PriceTicker from "@/components/PriceTicker";
 import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
 
-// স্ট্যাটিক ক্যাটাগরি লিস্ট (যাতে বিল্ডের সময় কোনো API ফেচ করে প্রি-রেন্ডার ক্র্যাশ না করে)
 const fallbackCategories = [
   { id: 1, name: "চাল", slug: "chal", icon: "🍚" },
   { id: 2, name: "ডাল", slug: "dal", icon: "🫘" },
@@ -28,8 +28,11 @@ export default function RootLayout({ children }) {
       <body className="flex min-h-screen flex-col bg-gray-50 text-gray-900 antialiased">
         <Toaster position="top-right" />
 
-        {/* ন্যাভবার ও প্রাইস টিকারে সেফ ফলব্যাক ক্যাটাগরি পাস করা হলো */}
-        <Navbar categories={fallbackCategories} />
+        {/* Suspense দিয়ে মুড়ে দেওয়ার ফলে প্রি-রেন্ডারিং হুক এরর আর আসবে না */}
+        <Suspense fallback={<div className="h-16 bg-white border-b" />}>
+          <Navbar categories={fallbackCategories} />
+        </Suspense>
+
         <PriceTicker products={[]} />
 
         <main className="flex-1">{children}</main>
